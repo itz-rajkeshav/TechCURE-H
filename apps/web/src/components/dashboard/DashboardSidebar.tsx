@@ -8,9 +8,9 @@ export function DashboardSidebar() {
     { label: "Overview", icon: "dashboard", href: "/dashboard" },
     { label: "Study Path", icon: "map", href: "/study-path" },
     { label: "Priorities", icon: "priority_high", href: "/priorities" },
-    { label: "Insights", icon: "lightbulb", href: "/dashboard" },
-    { label: "Dependencies", icon: "account_tree", href: "/dashboard" },
-    { label: "Progress", icon: "bar_chart", href: "/dashboard" },
+    { label: "Insights", icon: "lightbulb", href: "/insights" },
+    { label: "Dependencies", icon: "account_tree", href: "/dependencies" },
+    { label: "Progress", icon: "bar_chart", href: "/progress" },
     { label: "Study Assistant", icon: "chat_bubble", href: "/dashboard" },
     { label: "Change Context", icon: "swap_horiz", href: "/change-context" },
   ];
