@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
   return (
-    <div className="min-h-screen bg-[#030712] font-sans selection:bg-cyan-500/20 selection:text-cyan-200">
+    <div className="min-h-screen bg-white font-sans selection:bg-cyan-500/20 selection:text-cyan-900">
       <NavBar />
       <HeroSection />
       <FeaturesSection />
