@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/store/appStore";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PrioritiesView } from "@/components/dashboard/PrioritiesView";
+import { FlashcardDeck } from "@/components/dashboard/FlashcardDeck";
 
-export const Route = createFileRoute("/priorities")({
+export const Route = createFileRoute("/flashcards")({
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await authClient.getSession();
@@ -29,7 +29,7 @@ function RouteComponent() {
 
   return (
     <DashboardLayout>
-      <PrioritiesView />
+      <FlashcardDeck />
     </DashboardLayout>
   );
 }

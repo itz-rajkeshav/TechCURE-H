@@ -1,9 +1,11 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { useAppStore } from "@/store/appStore";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { DependenciesView } from "@/components/dashboard/DependenciesView";
+import { QuizView } from "@/components/dashboard/QuizView";
 
-export const Route = createFileRoute("/dependencies")({
+export const Route = createFileRoute("/quizzes")({
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await authClient.getSession();
@@ -18,9 +20,16 @@ export const Route = createFileRoute("/dependencies")({
 });
 
 function RouteComponent() {
+  const { initializeDefaults } = useAppStore();
+  
+  // Initialize defaults on first load
+  useEffect(() => {
+    initializeDefaults();
+  }, [initializeDefaults]);
+
   return (
     <DashboardLayout>
-      <DependenciesView />
+      <QuizView />
     </DashboardLayout>
   );
 }

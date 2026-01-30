@@ -11,11 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudyPathRouteImport } from './routes/study-path'
 import { Route as StudyAssistantRouteImport } from './routes/study-assistant'
+import { Route as StatsRouteImport } from './routes/stats'
+import { Route as QuizzesRouteImport } from './routes/quizzes'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as PrioritiesRouteImport } from './routes/priorities'
+import { Route as MindMapRouteImport } from './routes/mind-map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InsightsRouteImport } from './routes/insights'
-import { Route as DependenciesRouteImport } from './routes/dependencies'
+import { Route as FlashcardsRouteImport } from './routes/flashcards'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ChangeContextRouteImport } from './routes/change-context'
 import { Route as IndexRouteImport } from './routes/index'
@@ -31,6 +34,16 @@ const StudyAssistantRoute = StudyAssistantRouteImport.update({
   path: '/study-assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuizzesRoute = QuizzesRouteImport.update({
+  id: '/quizzes',
+  path: '/quizzes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
@@ -39,6 +52,11 @@ const ProgressRoute = ProgressRouteImport.update({
 const PrioritiesRoute = PrioritiesRouteImport.update({
   id: '/priorities',
   path: '/priorities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MindMapRoute = MindMapRouteImport.update({
+  id: '/mind-map',
+  path: '/mind-map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -51,9 +69,9 @@ const InsightsRoute = InsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DependenciesRoute = DependenciesRouteImport.update({
-  id: '/dependencies',
-  path: '/dependencies',
+const FlashcardsRoute = FlashcardsRouteImport.update({
+  id: '/flashcards',
+  path: '/flashcards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -81,11 +99,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
-  '/dependencies': typeof DependenciesRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/mind-map': typeof MindMapRoute
   '/priorities': typeof PrioritiesRouteWithChildren
   '/progress': typeof ProgressRoute
+  '/quizzes': typeof QuizzesRoute
+  '/stats': typeof StatsRoute
   '/study-assistant': typeof StudyAssistantRoute
   '/study-path': typeof StudyPathRoute
   '/priorities/$topicId': typeof PrioritiesTopicIdRoute
@@ -94,11 +115,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
-  '/dependencies': typeof DependenciesRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/mind-map': typeof MindMapRoute
   '/priorities': typeof PrioritiesRouteWithChildren
   '/progress': typeof ProgressRoute
+  '/quizzes': typeof QuizzesRoute
+  '/stats': typeof StatsRoute
   '/study-assistant': typeof StudyAssistantRoute
   '/study-path': typeof StudyPathRoute
   '/priorities/$topicId': typeof PrioritiesTopicIdRoute
@@ -108,11 +132,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
-  '/dependencies': typeof DependenciesRoute
+  '/flashcards': typeof FlashcardsRoute
   '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/mind-map': typeof MindMapRoute
   '/priorities': typeof PrioritiesRouteWithChildren
   '/progress': typeof ProgressRoute
+  '/quizzes': typeof QuizzesRoute
+  '/stats': typeof StatsRoute
   '/study-assistant': typeof StudyAssistantRoute
   '/study-path': typeof StudyPathRoute
   '/priorities/$topicId': typeof PrioritiesTopicIdRoute
@@ -123,11 +150,14 @@ export interface FileRouteTypes {
     | '/'
     | '/change-context'
     | '/dashboard'
-    | '/dependencies'
+    | '/flashcards'
     | '/insights'
     | '/login'
+    | '/mind-map'
     | '/priorities'
     | '/progress'
+    | '/quizzes'
+    | '/stats'
     | '/study-assistant'
     | '/study-path'
     | '/priorities/$topicId'
@@ -136,11 +166,14 @@ export interface FileRouteTypes {
     | '/'
     | '/change-context'
     | '/dashboard'
-    | '/dependencies'
+    | '/flashcards'
     | '/insights'
     | '/login'
+    | '/mind-map'
     | '/priorities'
     | '/progress'
+    | '/quizzes'
+    | '/stats'
     | '/study-assistant'
     | '/study-path'
     | '/priorities/$topicId'
@@ -149,11 +182,14 @@ export interface FileRouteTypes {
     | '/'
     | '/change-context'
     | '/dashboard'
-    | '/dependencies'
+    | '/flashcards'
     | '/insights'
     | '/login'
+    | '/mind-map'
     | '/priorities'
     | '/progress'
+    | '/quizzes'
+    | '/stats'
     | '/study-assistant'
     | '/study-path'
     | '/priorities/$topicId'
@@ -163,11 +199,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangeContextRoute: typeof ChangeContextRoute
   DashboardRoute: typeof DashboardRoute
-  DependenciesRoute: typeof DependenciesRoute
+  FlashcardsRoute: typeof FlashcardsRoute
   InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
+  MindMapRoute: typeof MindMapRoute
   PrioritiesRoute: typeof PrioritiesRouteWithChildren
   ProgressRoute: typeof ProgressRoute
+  QuizzesRoute: typeof QuizzesRoute
+  StatsRoute: typeof StatsRoute
   StudyAssistantRoute: typeof StudyAssistantRoute
   StudyPathRoute: typeof StudyPathRoute
 }
@@ -188,6 +227,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudyAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quizzes': {
+      id: '/quizzes'
+      path: '/quizzes'
+      fullPath: '/quizzes'
+      preLoaderRoute: typeof QuizzesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/progress': {
       id: '/progress'
       path: '/progress'
@@ -200,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/priorities'
       fullPath: '/priorities'
       preLoaderRoute: typeof PrioritiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mind-map': {
+      id: '/mind-map'
+      path: '/mind-map'
+      fullPath: '/mind-map'
+      preLoaderRoute: typeof MindMapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -216,11 +276,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dependencies': {
-      id: '/dependencies'
-      path: '/dependencies'
-      fullPath: '/dependencies'
-      preLoaderRoute: typeof DependenciesRouteImport
+    '/flashcards': {
+      id: '/flashcards'
+      path: '/flashcards'
+      fullPath: '/flashcards'
+      preLoaderRoute: typeof FlashcardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -270,11 +330,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangeContextRoute: ChangeContextRoute,
   DashboardRoute: DashboardRoute,
-  DependenciesRoute: DependenciesRoute,
+  FlashcardsRoute: FlashcardsRoute,
   InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
+  MindMapRoute: MindMapRoute,
   PrioritiesRoute: PrioritiesRouteWithChildren,
   ProgressRoute: ProgressRoute,
+  QuizzesRoute: QuizzesRoute,
+  StatsRoute: StatsRoute,
   StudyAssistantRoute: StudyAssistantRoute,
   StudyPathRoute: StudyPathRoute,
 }

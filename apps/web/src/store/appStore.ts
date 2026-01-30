@@ -16,12 +16,22 @@ interface AppState {
     setSubject: (subject: Subject | null) => void;
     setTopic: (topic: Topic | null) => void;
     clearSelection: () => void;
+    initializeDefaults: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-    selectedCourse: null,
-    selectedClass: null,
-    selectedSubject: null,
+// Default physics subject for demo purposes
+const defaultPhysicsSubject: Subject = {
+    id: "physics-12-cbse",
+    name: "Physics",
+    course: "CBSE",
+    class: "12",
+    topics: [], // Will be populated from API
+};
+
+export const useAppStore = create<AppState>((set, get) => ({
+    selectedCourse: "CBSE",
+    selectedClass: "12", 
+    selectedSubject: defaultPhysicsSubject,
     selectedTopic: null,
 
     setCourse: (course) => set({ selectedCourse: course }),
@@ -34,4 +44,14 @@ export const useAppStore = create<AppState>((set) => ({
         selectedSubject: null,
         selectedTopic: null,
     }),
+    initializeDefaults: () => {
+        const state = get();
+        if (!state.selectedSubject) {
+            set({
+                selectedCourse: "CBSE",
+                selectedClass: "12",
+                selectedSubject: defaultPhysicsSubject,
+            });
+        }
+    },
 }));

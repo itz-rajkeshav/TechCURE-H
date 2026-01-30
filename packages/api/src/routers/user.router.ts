@@ -4,6 +4,7 @@
  * API endpoints for user profile and settings
  */
 
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { User, UserProgress, Subject, type IUserProgress } from "@techcure/db";
@@ -14,6 +15,11 @@ import { User, UserProgress, Subject, type IUserProgress } from "@techcure/db";
 
 const updateProfileInput = z.object({
     name: z.string().min(1).max(255).optional(),
+});
+
+const getStudyHistoryInput = z.object({
+    limit: z.number().min(1).max(100).optional().default(50),
+    offset: z.number().min(0).optional().default(0),
 });
 
 // ============================================================================
@@ -28,42 +34,53 @@ export const getProfile = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         const user = await User.findById(userId).lean().exec();
 
         if (!user) {
-            return {
-                success: false as const,
-                error: "User not found",
-            };
+            throw new ORPCError("NOT_FOUND");
         }
 
-        // Get user's progress summary
-        const allProgress = await UserProgress.find({ user: userId }).lean().exec();
-        const completed = allProgress.filter((p: IUserProgress) => p.status === "completed").length;
-        const inProgress = allProgress.filter((p: IUserProgress) => p.status === "in_progress").length;
+        // Get user's progress summary using aggregation for better performance
+        const progressSummary = await UserProgress.aggregate([
+            { $match: { user: userId } },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    completed: {
+                        $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+                    },
+                    inProgress: {
+                        $sum: { $cond: [{ $eq: ["$status", "in_progress"] }, 1, 0] }
+                    },
+                    totalTimeSpent: { $sum: "$timeSpent" }
+                }
+            }
+        ]);
+
+        const summary = progressSummary[0] || {
+            total: 0,
+            completed: 0,
+            inProgress: 0,
+            totalTimeSpent: 0
+        };
 
         return {
-            success: true as const,
-            data: {
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    image: user.image,
-                    createdAt: user.createdAt,
-                },
-                summary: {
-                    totalTopicsTracked: allProgress.length,
-                    completedTopics: completed,
-                    inProgressTopics: inProgress,
-                    totalTimeSpent: allProgress.reduce((sum: number, p: IUserProgress) => sum + (p.timeSpent || 0), 0),
-                },
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                createdAt: user.createdAt,
+            },
+            summary: {
+                totalTopicsTracked: summary.total,
+                completedTopics: summary.completed,
+                inProgressTopics: summary.inProgress,
+                totalTimeSpent: summary.totalTimeSpent || 0,
             },
         };
     });
@@ -77,10 +94,7 @@ export const updateProfile = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         const user = await User.findByIdAndUpdate(
@@ -90,20 +104,14 @@ export const updateProfile = protectedProcedure
         ).lean().exec();
 
         if (!user) {
-            return {
-                success: false as const,
-                error: "User not found",
-            };
+            throw new ORPCError("NOT_FOUND");
         }
 
         return {
-            success: true as const,
-            data: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                image: user.image,
-            },
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
         };
     });
 
@@ -111,22 +119,26 @@ export const updateProfile = protectedProcedure
  * Get user's study history
  */
 export const getStudyHistory = protectedProcedure
-    .handler(async ({ context }) => {
+    .input(getStudyHistoryInput)
+    .handler(async ({ input, context }) => {
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
+
+        const { limit, offset } = input;
 
         const allProgress = await UserProgress.find({ user: userId })
             .populate("topic")
             .sort({ updatedAt: -1 })
-            .limit(50)
+            .skip(offset)
+            .limit(limit)
             .lean()
             .exec();
+
+        // Get total count for pagination info
+        const totalCount = await UserProgress.countDocuments({ user: userId });
 
         // Group by date
         const groupedByDate = new Map<string, IUserProgress[]>();
@@ -150,8 +162,13 @@ export const getStudyHistory = protectedProcedure
         }));
 
         return {
-            success: true as const,
-            data: history,
+            history,
+            pagination: {
+                total: totalCount,
+                limit,
+                offset,
+                hasMore: offset + limit < totalCount,
+            },
         };
     });
 
@@ -163,44 +180,54 @@ export const getActiveSubjects = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
-        const allProgress = await UserProgress.find({ user: userId }).lean().exec();
+        // Use aggregation to get subject progress efficiently
+        const subjectProgressData = await UserProgress.aggregate([
+            { $match: { user: userId } },
+            {
+                $group: {
+                    _id: "$subject",
+                    total: { $sum: 1 },
+                    completed: {
+                        $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+                    },
+                    inProgress: {
+                        $sum: { $cond: [{ $eq: ["$status", "in_progress"] }, 1, 0] }
+                    }
+                }
+            }
+        ]);
 
-        // Get unique subject IDs
-        const subjectIds = [...new Set(allProgress.map((p: IUserProgress) => p.subject))];
+        if (subjectProgressData.length === 0) {
+            return [];
+        }
 
-        // Get subject details
+        // Get subject details for subjects with progress
+        const subjectIds = subjectProgressData.map(item => item._id);
         const subjects = await Subject.find({ _id: { $in: subjectIds } }).lean().exec();
 
-        // Calculate progress per subject
+        // Map progress data to subjects
         const subjectsWithProgress = subjects.map(subject => {
-            const subjectProgress = allProgress.filter((p: IUserProgress) => p.subject === subject._id);
-            const completed = subjectProgress.filter((p: IUserProgress) => p.status === "completed").length;
-            const inProgress = subjectProgress.filter((p: IUserProgress) => p.status === "in_progress").length;
+            const progressData = subjectProgressData.find(p => p._id.equals(subject._id));
+            const total = progressData?.total || 0;
+            const completed = progressData?.completed || 0;
+            const inProgress = progressData?.inProgress || 0;
 
             return {
                 subject,
                 progress: {
-                    total: subjectProgress.length,
+                    total,
                     completed,
                     inProgress,
-                    notStarted: subjectProgress.length - completed - inProgress,
-                    completionRate: subjectProgress.length > 0
-                        ? Math.round((completed / subjectProgress.length) * 100)
-                        : 0,
+                    notStarted: total - completed - inProgress,
+                    completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
                 },
             };
         });
 
-        return {
-            success: true as const,
-            data: subjectsWithProgress,
-        };
+        return subjectsWithProgress;
     });
 
 /**
@@ -211,45 +238,57 @@ export const getDailyGoal = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
-        // Get today's progress
+        // Get today's progress using aggregation
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const todayProgress = await UserProgress.find({
-            user: userId,
-            updatedAt: { $gte: today },
-        }).lean().exec();
+        const todayStats = await UserProgress.aggregate([
+            {
+                $match: {
+                    user: userId,
+                    updatedAt: { $gte: today },
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    completedToday: {
+                        $sum: {
+                            $cond: [
+                                {
+                                    $and: [
+                                        { $eq: ["$status", "completed"] },
+                                        { $gte: ["$completedAt", today] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    timeSpentToday: { $sum: "$timeSpent" }
+                }
+            }
+        ]);
 
-        const completedToday = todayProgress.filter((p: IUserProgress) =>
-            p.status === "completed" && p.completedAt && new Date(p.completedAt) >= today
-        ).length;
-
-        const timeSpentToday = todayProgress.reduce((sum: number, p: IUserProgress) =>
-            sum + (p.timeSpent || 0), 0
-        );
+        const stats = todayStats[0] || { completedToday: 0, timeSpentToday: 0 };
 
         // Default daily goal (could be made configurable per user)
         const dailyTopicGoal = 2;
         const dailyTimeGoal = 60; // minutes
 
         return {
-            success: true as const,
-            data: {
-                date: today.toISOString(),
-                topicsCompleted: completedToday,
-                topicGoal: dailyTopicGoal,
-                topicProgress: Math.min(100, Math.round((completedToday / dailyTopicGoal) * 100)),
-                timeSpent: timeSpentToday,
-                timeGoal: dailyTimeGoal,
-                timeProgress: Math.min(100, Math.round((timeSpentToday / dailyTimeGoal) * 100)),
-                goalMet: completedToday >= dailyTopicGoal || timeSpentToday >= dailyTimeGoal,
-            },
+            date: today.toISOString(),
+            topicsCompleted: stats.completedToday,
+            topicGoal: dailyTopicGoal,
+            topicProgress: Math.min(100, Math.round((stats.completedToday / dailyTopicGoal) * 100)),
+            timeSpent: stats.timeSpentToday,
+            timeGoal: dailyTimeGoal,
+            timeProgress: Math.min(100, Math.round((stats.timeSpentToday / dailyTimeGoal) * 100)),
+            goalMet: stats.completedToday >= dailyTopicGoal || stats.timeSpentToday >= dailyTimeGoal,
         };
     });
 

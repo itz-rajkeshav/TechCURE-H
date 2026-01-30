@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAppStore } from "@/store/appStore";
 import { Link } from "@tanstack/react-router";
+import { useSubjectTopics, useProgress, useUpdateProgress } from "@/lib/api/hooks";
 
 interface PriorityItem {
   id: string;
   title: string;
   description: string;
+  examWeight: number;
+  estimatedTime: string;
+  status: "not_started" | "in_progress" | "completed";
   badge?: {
     text: string;
     color: string;
@@ -25,61 +29,114 @@ interface PriorityColumn {
 
 export function PrioritiesView() {
   const { selectedSubject } = useAppStore();
-  const subjectName = selectedSubject?.name || "Operating Systems";
+  
+  // Use hardcoded physics subject ID if no subject is selected (for demo purposes)
+  const subjectName = selectedSubject?.name || "Physics (Class 12)";
+  const subjectId = selectedSubject?.id || "physics-12-cbse";
 
-  const [columns, setColumns] = useState<PriorityColumn[]>([
-    {
-      id: "high",
-      title: "HIGH PRIORITY",
-      color: "text-red-600",
-      dotColor: "bg-red-500",
-      borderColor: "border-l-red-500",
-      items: [
+  // Fetch topics and progress from API
+  const { data: topicsResponse, isLoading: topicsLoading, error: topicsError } = useSubjectTopics(subjectId);
+  const { data: progress = [], isLoading: progressLoading, error: progressError } = useProgress(subjectId);
+  const updateProgressMutation = useUpdateProgress();
+
+  // Extract topics from response
+  const topics = topicsResponse?.success ? topicsResponse.data : [];
+
+  // Transform API data into priority columns
+  const columns = useMemo<PriorityColumn[]>(() => {
+    if (!topics.length) {
+      return [
         {
-          id: "1",
-          title: "Process Scheduling",
-          description: "Fundamental concept for all upcoming lab assignments.",
-          badge: {
-            text: "DUE TOMORROW",
-            color: "bg-red-100 text-red-700 border-red-200"
-          }
+          id: "high",
+          title: "HIGH PRIORITY",
+          color: "text-red-600",
+          dotColor: "bg-red-500",
+          borderColor: "border-l-red-500",
+          items: []
         },
         {
-          id: "2",
-          title: "Deadlock Prevention",
-          description: "Heavy weightage in mid-semester exams."
-        }
-      ]
-    },
-    {
-      id: "medium",
-      title: "MEDIUM PRIORITY",
-      color: "text-orange-600",
-      dotColor: "bg-orange-500",
-      borderColor: "border-l-orange-500",
-      items: [
+          id: "medium", 
+          title: "MEDIUM PRIORITY",
+          color: "text-orange-600",
+          dotColor: "bg-orange-500",
+          borderColor: "border-l-orange-500",
+          items: []
+        },
         {
-          id: "3",
-          title: "Memory Management",
-          description: "Complex but not required until Week 8."
+          id: "low",
+          title: "LOW PRIORITY", 
+          color: "text-gray-600",
+          dotColor: "bg-gray-400",
+          borderColor: "border-l-gray-400",
+          items: []
         }
-      ]
-    },
-    {
-      id: "low",
-      title: "LOW PRIORITY",
-      color: "text-gray-600",
-      dotColor: "bg-gray-400",
-      borderColor: "border-l-gray-400",
-      items: [
-        {
-          id: "4",
-          title: "History of OS",
-          description: "Introductory context, minimal exam impact."
-        }
-      ]
+      ];
     }
-  ]);
+
+    // Create progress map for quick lookup
+    const progressMap = new Map(
+      progress.map((p: any) => [p.topic?._id?.toString() || p.topic?.toString(), p])
+    );
+
+    // Transform topics into priority items
+    const priorityItems: PriorityItem[] = topics.map((topic: any) => {
+      const topicProgress = progressMap.get(topic._id?.toString());
+      const status = topicProgress?.status || "not_started";
+      
+      // Generate priority badge for high priority items
+      const badge = topic.priority === "high" && topic.examWeight > 15 
+        ? { text: "HIGH IMPACT", color: "bg-red-100 text-red-700 border-red-200" }
+        : undefined;
+
+      return {
+        id: topic._id?.toString(),
+        title: topic.title,
+        description: topic.description,
+        examWeight: topic.examWeight,
+        estimatedTime: topic.estimatedTime,
+        status,
+        badge
+      };
+    });
+
+    // Group items by priority
+    const highItems = priorityItems.filter(item => 
+      topics.find((t: any) => t._id?.toString() === item.id)?.priority === "high"
+    );
+    const mediumItems = priorityItems.filter(item => 
+      topics.find((t: any) => t._id?.toString() === item.id)?.priority === "medium"
+    );
+    const lowItems = priorityItems.filter(item => 
+      topics.find((t: any) => t._id?.toString() === item.id)?.priority === "low"
+    );
+
+    return [
+      {
+        id: "high",
+        title: "HIGH PRIORITY",
+        color: "text-red-600",
+        dotColor: "bg-red-500", 
+        borderColor: "border-l-red-500",
+        items: highItems
+      },
+      {
+        id: "medium",
+        title: "MEDIUM PRIORITY",
+        color: "text-orange-600",
+        dotColor: "bg-orange-500",
+        borderColor: "border-l-orange-500", 
+        items: mediumItems
+      },
+      {
+        id: "low",
+        title: "LOW PRIORITY",
+        color: "text-gray-600",
+        dotColor: "bg-gray-400",
+        borderColor: "border-l-gray-400",
+        items: lowItems
+      }
+    ];
+  }, [topics, progress]);
 
   const [draggedItem, setDraggedItem] = useState<{ item: PriorityItem; fromColumn: PriorityLevel } | null>(null);
 
@@ -99,31 +156,63 @@ export function PrioritiesView() {
       return;
     }
 
-    setColumns(prev => {
-      const newColumns = [...prev];
-      
-      // Remove from source column
-      const sourceColumn = newColumns.find(col => col.id === draggedItem.fromColumn);
-      if (sourceColumn) {
-        sourceColumn.items = sourceColumn.items.filter(item => item.id !== draggedItem.item.id);
-      }
-      
-      // Add to target column
-      const targetColumn = newColumns.find(col => col.id === targetColumnId);
-      if (targetColumn) {
-        targetColumn.items.push(draggedItem.item);
-      }
-      
-      return newColumns;
-    });
-
+    // TODO: Implement priority update API call
+    console.log(`Moving ${draggedItem.item.title} from ${draggedItem.fromColumn} to ${targetColumnId}`);
     setDraggedItem(null);
   };
 
   const handleAddItem = (columnId: PriorityLevel) => {
-    // Placeholder for adding new items
     console.log("Add item to column:", columnId);
   };
+
+  // Loading state
+  if (topicsLoading || progressLoading) {
+    return (
+      <div className="max-w-[1400px] mx-auto flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">Priorities</h2>
+          <p className="text-base text-[#4c669a]">
+            Organize topics by urgency and impact to optimize your learning flow.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white border border-[#e7ebf3] rounded-xl p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (topicsError || progressError) {
+    return (
+      <div className="max-w-[1400px] mx-auto flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">Priorities</h2>
+          <p className="text-base text-[#4c669a]">
+            Organize topics by urgency and impact to optimize your learning flow.
+          </p>
+        </div>
+        
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Unable to load priorities</h3>
+          <p className="text-red-700">
+            {topicsError?.message || progressError?.message || "An error occurred while loading your priorities."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto flex flex-col gap-8">
@@ -175,9 +264,30 @@ export function PrioritiesView() {
                       <h4 className="font-bold text-[#0d121b] mb-2 group-hover:text-[#135bec] transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-sm text-[#4c669a] leading-relaxed">
+                      <p className="text-sm text-[#4c669a] leading-relaxed mb-3">
                         {item.description}
                       </p>
+                      
+                      {/* Topic metadata */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">
+                          {item.examWeight}% exam weight
+                        </span>
+                        <span className="px-2 py-1 bg-gray-50 text-gray-700 text-xs rounded-md font-medium">
+                          ~{item.estimatedTime}
+                        </span>
+                        {item.status === "completed" && (
+                          <span className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-md font-medium">
+                            ✓ Completed
+                          </span>
+                        )}
+                        {item.status === "in_progress" && (
+                          <span className="px-2 py-1 bg-yellow-50 text-yellow-700 text-xs rounded-md font-medium">
+                            ⏳ In Progress
+                          </span>
+                        )}
+                      </div>
+                      
                       {item.badge && (
                         <div className="mt-3">
                           <span className={`px-3 py-1 rounded-md text-xs font-bold border uppercase ${item.badge.color}`}>

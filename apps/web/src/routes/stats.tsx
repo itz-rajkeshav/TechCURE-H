@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/store/appStore";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PrioritiesView } from "@/components/dashboard/PrioritiesView";
+import { UserStatsPanel } from "@/components/dashboard/UserStatsPanel";
 
-export const Route = createFileRoute("/priorities")({
+export const Route = createFileRoute("/stats")({
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await authClient.getSession();
@@ -29,7 +29,13 @@ function RouteComponent() {
 
   return (
     <DashboardLayout>
-      <PrioritiesView />
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">My Learning Stats</h1>
+          <p className="text-muted-foreground">Track your progress and achievements</p>
+        </div>
+        <UserStatsPanel />
+      </div>
     </DashboardLayout>
   );
 }

@@ -9,20 +9,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
+import { useAuth } from "@/lib/auth-context";
 
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
 export default function UserMenu() {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
+  const { session, user, isLoading, isAuthenticated } = useAuth();
 
-  if (isPending) {
+  if (isLoading) {
     return <Skeleton className="h-9 w-24" />;
   }
 
-  if (!session) {
+  if (!isAuthenticated || !user) {
     return (
       <Link to="/login">
         <Button variant="outline">Sign In</Button>
@@ -33,24 +33,27 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
+        {user.name || user.email}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+          <DropdownMenuItem>{user.email}</DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    navigate({
-                      to: "/",
-                    });
+              // Import authClient dynamically to avoid circular imports
+              import("@/lib/auth-client").then(({ authClient }) => {
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      navigate({
+                        to: "/",
+                      });
+                    },
                   },
-                },
+                });
               });
             }}
           >

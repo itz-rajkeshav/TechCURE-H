@@ -1,4 +1,5 @@
 import { useAppStore } from "@/store/appStore";
+import { Link } from "@tanstack/react-router";
 
 interface StudyTopic {
   id: number;
@@ -126,13 +127,39 @@ export function StudyPathView() {
                 </p>
 
                 {/* Badges */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-4">
                   <span className={`px-3 py-1 rounded-md text-xs font-bold border uppercase ${getPriorityStyles(topic.priority)}`}>
                     {topic.priority} Priority
                   </span>
                   <span className={`px-3 py-1 rounded-md text-xs font-bold border uppercase ${getLevelStyles(topic.level)}`}>
                     {topic.level}
                   </span>
+                </div>
+
+                {/* Interactive Actions */}
+                <div className="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+                  <Link
+                    to="/flashcards"
+                    search={{ topic: topic.title }}
+                    className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">style</span>
+                    Study Cards
+                  </Link>
+                  
+                  <Link
+                    to="/quizzes"
+                    search={{ topic: topic.title }}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">quiz</span>
+                    Take Quiz
+                  </Link>
+                  
+                  <button className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors">
+                    <span className="material-symbols-outlined text-sm">play_arrow</span>
+                    Start Learning
+                  </button>
                 </div>
               </div>
             </div>

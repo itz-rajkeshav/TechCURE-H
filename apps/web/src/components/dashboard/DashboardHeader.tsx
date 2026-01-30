@@ -2,16 +2,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { useAppStore } from "@/store/appStore";
+import { useAuth } from "@/lib/auth-context";
 import { ChangeContextModal } from "./ChangeContextModal";
+import UserMenu from "../user-menu";
 
 export function DashboardHeader() {
   const { selectedClass, selectedCourse, selectedSubject } = useAppStore();
+  const { user, isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Use values from store or fallback to the hardcoded values from the user's design for the preview
-  const course = selectedCourse || 'B.Tech';
-  const cls = selectedClass || 'Semester 5';
-  const subjectName = selectedSubject?.name || 'Operating Systems';
+  // Use values from store or fallback to the physics subject for demo
+  const course = selectedCourse || 'CBSE Board';
+  const cls = selectedClass || 'Class 12';
+  const subjectName = selectedSubject?.name || 'Physics';
 
   return (
     <>
@@ -32,12 +35,22 @@ export function DashboardHeader() {
               <span className="material-symbols-outlined text-xs">chevron_right</span>
               <span className="text-[#0d121b]">{subjectName}</span>
             </div>
+            
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center gap-2 text-xs text-[#4c669a]">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Signed in as {user?.name || user?.email}</span>
+              </div>
+            )}
+            
             <button 
                onClick={() => setIsModalOpen(true)}
                className="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg bg-[#135bec] h-10 px-4 text-white text-sm font-bold transition-colors hover:bg-[#135bec]/90"
             >
               <span>Change Context</span>
             </button>
+            
+            <UserMenu />
           </div>
         </div>
       </header>

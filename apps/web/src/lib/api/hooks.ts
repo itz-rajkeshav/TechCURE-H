@@ -15,7 +15,7 @@ import { orpc, client } from "@/utils/orpc";
 /**
  * Get all subjects, optionally filtered by course/class
  */
-export function useSubjects(filters?: { courseId?: string; classLevel?: string }) {
+export function useSubjects(filters?: { course?: string; class?: string }) {
     return useQuery({
         queryKey: ["subjects", filters],
         queryFn: () => client.subjects.list(filters || {}),
@@ -286,12 +286,7 @@ export function useUpdateProfile() {
 
     return useMutation({
         mutationFn: (data: {
-            displayName?: string;
-            preferences?: {
-                dailyGoalMinutes?: number;
-                theme?: string;
-                notifications?: boolean;
-            };
+            name?: string;
         }) => client.user.updateProfile(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
@@ -385,5 +380,234 @@ export function useExportProgress() {
     return useMutation({
         mutationFn: (data: { subjectId?: string; format?: "json" | "csv" }) =>
             client.export.exportProgress(data),
+    });
+}
+
+// ============================================================================
+// AI Assistant Hooks (Protected)
+// ============================================================================
+
+/**
+ * Send message to AI study assistant
+ */
+export function useAIChat() {
+    return useMutation({
+        mutationFn: (data: {
+            message: string;
+            context?: {
+                subjectId?: string;
+                subjectName?: string;
+                userProgress?: {
+                    completedTopics?: number;
+                    totalTopics?: number;
+                    currentLevel?: string;
+                };
+            };
+            conversationHistory?: Array<{
+                role: "user" | "assistant";
+                content: string;
+            }>;
+        }) => client.ai.chat(data),
+    });
+}
+
+/**
+ * Get AI study suggestions
+ */
+export function useAISuggestions() {
+    return useMutation({
+        mutationFn: (data: {
+            subjectId: string;
+            difficulty?: "beginner" | "intermediate" | "advanced";
+        }) => client.ai.getSuggestions(data),
+    });
+}
+
+// ============================================================================
+// Learning Experience Hooks (Quizzes, Flashcards, Gamification)
+// ============================================================================
+
+/**
+ * Get quizzes for a topic
+ */
+export function useQuizzesForTopic(topicId: string, quizType?: "practice" | "assessment" | "mock_test" | "quick_review") {
+    return useQuery({
+        queryKey: ["learning", "quizzes", topicId, quizType],
+        queryFn: () => client.learning.getQuizzesForTopic({ topicId, quizType }),
+        enabled: !!topicId,
+    });
+}
+
+/**
+ * Start a quiz session
+ */
+export function useStartQuiz() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: { quizId: string }) => client.learning.startQuiz(data),
+        onSuccess: () => {
+            // Invalidate quiz-related queries
+            queryClient.invalidateQueries({ queryKey: ["learning", "quizzes"] });
+        },
+    });
+}
+
+/**
+ * Submit quiz answer
+ */
+export function useSubmitQuizAnswer() {
+    return useMutation({
+        mutationFn: (data: {
+            quizId: string;
+            questionId: string;
+            answer: string | string[];
+            timeSpent: number;
+            hintsUsed?: number;
+        }) => client.learning.submitQuizAnswer(data),
+    });
+}
+
+/**
+ * Complete quiz session
+ */
+export function useCompleteQuiz() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: { quizId: string; attemptId: string }) => client.learning.completeQuiz(data),
+        onSuccess: () => {
+            // Invalidate user stats and progress
+            queryClient.invalidateQueries({ queryKey: ["learning", "userStats"] });
+            queryClient.invalidateQueries({ queryKey: ["progress"] });
+        },
+    });
+}
+
+/**
+ * Get flashcards for review (spaced repetition)
+ */
+export function useFlashcardsForReview(topicId?: string) {
+    return useQuery({
+        queryKey: ["learning", "flashcards", "review", topicId],
+        queryFn: () => client.learning.getFlashcardsForReview({ topicId }),
+    });
+}
+
+/**
+ * Review flashcard (record difficulty)
+ */
+export function useReviewFlashcard() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: {
+            flashcardId: string;
+            difficulty: "again" | "hard" | "good" | "easy";
+            responseTime: number;
+        }) => client.learning.reviewFlashcard(data),
+        onSuccess: () => {
+            // Invalidate flashcard queries to update spaced repetition
+            queryClient.invalidateQueries({ queryKey: ["learning", "flashcards"] });
+        },
+    });
+}
+
+/**
+ * Get user stats (gamification)
+ */
+export function useUserStats() {
+    return useQuery({
+        queryKey: ["learning", "userStats"],
+        queryFn: () => client.learning.getUserStats({}),
+    });
+}
+
+/**
+ * Get badges
+ */
+export function useBadges() {
+    return useQuery({
+        queryKey: ["learning", "badges"],
+        queryFn: () => client.learning.getBadges({}),
+    });
+}
+
+/**
+ * Get practice tests for a subject
+ */
+export function usePracticeTests(subjectId: string, testType?: "custom" | "mock_exam" | "chapter_test" | "full_syllabus") {
+    return useQuery({
+        queryKey: ["learning", "practiceTests", subjectId, testType],
+        queryFn: () => client.learning.getPracticeTests({ subjectId, testType }),
+        enabled: !!subjectId,
+    });
+}
+
+/**
+ * Get user analytics (study insights)
+ */
+export function useUserAnalytics(period?: "week" | "month" | "quarter" | "year", subjectId?: string) {
+    return useQuery({
+        queryKey: ["learning", "analytics", period, subjectId],
+        queryFn: () => client.learning.getUserAnalytics({ period, subjectId }),
+    });
+}
+
+// ============================================================================
+// Learning Context Hooks
+// ============================================================================
+
+/**
+ * Set learning context (education level, course, year)
+ */
+export function useSetLearningContext() {
+    return useMutation({
+        mutationFn: (data: {
+            educationLevel: 'high_school' | 'undergraduate' | 'postgraduate' | 'competitive_exam' | 'professional_course';
+            course: string;
+            year: string;
+            subjects?: string[];
+        }) => client.context.setLearningContext(data),
+    });
+}
+
+/**
+ * Upload and analyze syllabus
+ */
+export function useUploadSyllabus() {
+    return useMutation({
+        mutationFn: (data: {
+            subjectName: string;
+            syllabusText: string;
+            contextId?: string;
+        }) => client.context.uploadSyllabus(data),
+    });
+}
+
+/**
+ * Generate AI study path
+ */
+export function useGenerateStudyPath() {
+    return useMutation({
+        mutationFn: (data: {
+            contextId: string;
+            preferences?: {
+                studyHoursPerDay?: number;
+                examDate?: string;
+                focusAreas?: string[];
+                difficultyPreference?: 'easy_to_hard' | 'hard_to_easy' | 'mixed';
+            };
+        }) => client.context.generateStudyPath(data),
+    });
+}
+
+/**
+ * Get user's learning contexts
+ */
+export function useLearningContexts() {
+    return useQuery({
+        queryKey: ["learning-contexts"],
+        queryFn: () => client.context.getLearningContexts({}),
     });
 }

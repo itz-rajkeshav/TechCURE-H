@@ -5,6 +5,7 @@
  * All endpoints require authentication
  */
 
+import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { UserProgress, Topic, type IUserProgress, type ITopic } from "@techcure/db";
@@ -41,10 +42,7 @@ export const getAllProgress = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         const progress = await UserProgress.find({ user: userId })
@@ -52,10 +50,7 @@ export const getAllProgress = protectedProcedure
             .lean()
             .exec();
 
-        return {
-            success: true as const,
-            data: progress,
-        };
+        return progress;
     });
 
 /**
@@ -67,10 +62,7 @@ export const getProgress = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         const progress = await UserProgress.find({
@@ -96,10 +88,7 @@ export const getProgress = protectedProcedure
             };
         });
 
-        return {
-            success: true as const,
-            data: fullProgress,
-        };
+        return fullProgress;
     });
 
 /**
@@ -111,45 +100,76 @@ export const updateProgress = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         // Verify topic exists
         const topic = await Topic.findById(input.topicId).exec();
         if (!topic) {
-            return {
-                success: false as const,
-                error: "Topic not found",
-            };
+            throw new ORPCError("NOT_FOUND");
         }
 
-        // Upsert progress
-        const progress = await UserProgress.findOneAndUpdate(
-            {
-                user: userId,
-                topic: input.topicId,
-            },
-            {
-                $set: {
-                    user: userId,
-                    topic: input.topicId,
-                    subject: input.subjectId,
-                    status: input.status,
-                    notes: input.notes,
-                    ...(input.timeSpent !== undefined && { timeSpent: input.timeSpent }),
-                    ...(input.status === "completed" && { completedAt: new Date() }),
-                },
-            },
-            { upsert: true, new: true }
-        ).lean().exec();
+        // Upsert progress with improved retry logic for race conditions
+        let retries = 3;
+        let progress = null;
+        
+        while (retries > 0) {
+            try {
+                progress = await UserProgress.findOneAndUpdate(
+                    {
+                        user: userId,
+                        topic: input.topicId,
+                    },
+                    {
+                        $set: {
+                            user: userId,
+                            topic: input.topicId,
+                            subject: input.subjectId,
+                            status: input.status,
+                            notes: input.notes,
+                            updatedAt: new Date(),
+                            ...(input.timeSpent !== undefined && { timeSpent: input.timeSpent }),
+                            ...(input.status === "completed" && { completedAt: new Date() }),
+                        },
+                        $setOnInsert: {
+                            createdAt: new Date(),
+                        }
+                    },
+                    { 
+                        upsert: true, 
+                        new: true,
+                        runValidators: true,
+                        setDefaultsOnInsert: true
+                    }
+                ).lean().exec();
+                
+                break; // Success, exit retry loop
+            } catch (error: any) {
+                retries--;
+                
+                if (error.code === 11000 && retries > 0) {
+                    // Duplicate key error (race condition), use exponential backoff
+                    const backoffMs = Math.pow(2, 3 - retries) * 100 + Math.random() * 100;
+                    console.warn(`Race condition detected for user ${userId}, topic ${input.topicId}. Retrying in ${backoffMs}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, backoffMs));
+                    continue;
+                } else if (error.code === 11000) {
+                    // Final retry failed due to race condition
+                    console.error(`Persistent race condition for user ${userId}, topic ${input.topicId}. All retries exhausted.`);
+                    throw new ORPCError("CONFLICT", { message: "Unable to update progress due to concurrent modifications" });
+                }
+                
+                // Other errors, don't retry
+                console.error(`Progress update error for user ${userId}, topic ${input.topicId}:`, error);
+                throw error;
+            }
+        }
 
-        return {
-            success: true as const,
-            data: progress,
-        };
+        if (!progress) {
+            throw new ORPCError("INTERNAL_SERVER_ERROR");
+        }
+
+        return progress;
     });
 
 /**
@@ -161,10 +181,7 @@ export const getStats = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         // Build query
@@ -213,11 +230,8 @@ export const getStats = protectedProcedure
         }
 
         return {
-            success: true as const,
-            data: {
-                ...stats,
-                subjectBreakdown,
-            },
+            ...stats,
+            subjectBreakdown,
         };
     });
 
@@ -230,10 +244,7 @@ export const resetProgress = protectedProcedure
         const userId = context.session?.user?.id;
 
         if (!userId) {
-            return {
-                success: false as const,
-                error: "User not authenticated",
-            };
+            throw new ORPCError("UNAUTHORIZED");
         }
 
         await UserProgress.deleteMany({
@@ -241,10 +252,7 @@ export const resetProgress = protectedProcedure
             subject: input.subjectId,
         }).exec();
 
-        return {
-            success: true as const,
-            data: { reset: true },
-        };
+        return { reset: true };
     });
 
 // ============================================================================
