@@ -13,25 +13,25 @@ For the **MVP**, LearnPath uses static JSON data with no backend required. This 
 ## Phase 1: MVP Static Data (Priority: High)
 
 ### 1.1 Data File Structure
-- [ ] Create `lib/data/physics12.ts` - Class 12 Physics (CBSE)
-- [ ] Define TypeScript interfaces
-- [ ] Export subject data as constant
-- [ ] Add type safety
+- [x] Create `lib/data/physics12.ts` - Class 12 Physics (CBSE)
+- [x] Define TypeScript interfaces
+- [x] Export subject data as constant
+- [x] Add type safety
 
 ### 1.2 Data Content
-- [ ] Add 12 topics with complete metadata
-- [ ] Verify exam weight percentages
-- [ ] Add common mistakes (2-3 per topic)
-- [ ] Set estimated study times
-- [ ] Define prerequisite dependencies
-- [ ] Set flow diagram positions
+- [x] Add 12 topics with complete metadata
+- [x] Verify exam weight percentages
+- [x] Add common mistakes (2-3 per topic)
+- [x] Set estimated study times
+- [x] Define prerequisite dependencies
+- [x] Set flow diagram positions
 
 ### 1.3 Data Utilities
-- [ ] Create `lib/data/index.ts` export file
-- [ ] Add helper to get subject by ID
-- [ ] Add helper to get topic by ID
-- [ ] Add helper to get topics by priority
-- [ ] Add data validation functions
+- [x] Create `lib/data/index.ts` export file
+- [x] Add helper to get subject by ID
+- [x] Add helper to get topic by ID
+- [x] Add helper to get topics by priority
+- [x] Add data validation functions
 
 ### 1.4 Additional Subjects (Future)
 - [ ] Create `lib/data/chemistry12.ts` (v1.1)
