@@ -1,0 +1,3 @@
+{
+  "extends": "@techcure/config/tsconfig.base.json"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@techcure/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@techcure/db": "workspace:*",
+    "@techcure/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@techcure/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

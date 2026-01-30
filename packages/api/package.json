@@ -1,0 +1,30 @@
+{
+  "name": "@techcure/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "@techcure/auth": "workspace:*",
+    "@techcure/db": "workspace:*",
+    "@techcure/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@techcure/config": "workspace:*",
+    "@types/express": "catalog:",
+    "typescript": "catalog:"
+  }
+}

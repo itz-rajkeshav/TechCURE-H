@@ -1,0 +1,23 @@
+{
+  "name": "@techcure/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@techcure/env": "workspace:*",
+    "dotenv": "catalog:",
+    "mongoose": "^8.14.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@techcure/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
