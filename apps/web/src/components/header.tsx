@@ -1,9 +1,16 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
 export default function Header() {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
+  if (isHome) {
+    return null;
+  }
+
   const links = [
     { to: "/", label: "Home" },
     { to: "/dashboard", label: "Dashboard" },
