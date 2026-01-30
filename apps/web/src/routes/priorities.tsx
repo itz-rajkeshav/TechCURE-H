@@ -1,11 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth-client";
-import { useAppStore } from "@/store/appStore";
-import { SubjectSelector } from "@/components/shared/SubjectSelector";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { OverviewView } from "@/components/dashboard/OverviewView";
+import { PrioritiesView } from "@/components/dashboard/PrioritiesView";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/priorities")({
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await authClient.getSession();
@@ -20,11 +18,9 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function RouteComponent() {
-  const { selectedSubject } = useAppStore();
-
   return (
     <DashboardLayout>
-        <OverviewView />
+      <PrioritiesView />
     </DashboardLayout>
   );
 }

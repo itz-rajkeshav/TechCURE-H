@@ -9,13 +9,51 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudyPathRouteImport } from './routes/study-path'
+import { Route as StudyAssistantRouteImport } from './routes/study-assistant'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as PrioritiesRouteImport } from './routes/priorities'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as DependenciesRouteImport } from './routes/dependencies'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ChangeContextRouteImport } from './routes/change-context'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrioritiesTopicIdRouteImport } from './routes/priorities.$topicId'
 
+const StudyPathRoute = StudyPathRouteImport.update({
+  id: '/study-path',
+  path: '/study-path',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudyAssistantRoute = StudyAssistantRouteImport.update({
+  id: '/study-assistant',
+  path: '/study-assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrioritiesRoute = PrioritiesRouteImport.update({
+  id: '/priorities',
+  path: '/priorities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DependenciesRoute = DependenciesRouteImport.update({
+  id: '/dependencies',
+  path: '/dependencies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -23,49 +61,166 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChangeContextRoute = ChangeContextRouteImport.update({
+  id: '/change-context',
+  path: '/change-context',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrioritiesTopicIdRoute = PrioritiesTopicIdRouteImport.update({
+  id: '/$topicId',
+  path: '/$topicId',
+  getParentRoute: () => PrioritiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
+  '/dependencies': typeof DependenciesRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/priorities': typeof PrioritiesRouteWithChildren
+  '/progress': typeof ProgressRoute
+  '/study-assistant': typeof StudyAssistantRoute
+  '/study-path': typeof StudyPathRoute
+  '/priorities/$topicId': typeof PrioritiesTopicIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
+  '/dependencies': typeof DependenciesRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/priorities': typeof PrioritiesRouteWithChildren
+  '/progress': typeof ProgressRoute
+  '/study-assistant': typeof StudyAssistantRoute
+  '/study-path': typeof StudyPathRoute
+  '/priorities/$topicId': typeof PrioritiesTopicIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/change-context': typeof ChangeContextRoute
   '/dashboard': typeof DashboardRoute
+  '/dependencies': typeof DependenciesRoute
+  '/insights': typeof InsightsRoute
   '/login': typeof LoginRoute
+  '/priorities': typeof PrioritiesRouteWithChildren
+  '/progress': typeof ProgressRoute
+  '/study-assistant': typeof StudyAssistantRoute
+  '/study-path': typeof StudyPathRoute
+  '/priorities/$topicId': typeof PrioritiesTopicIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login'
+  fullPaths:
+    | '/'
+    | '/change-context'
+    | '/dashboard'
+    | '/dependencies'
+    | '/insights'
+    | '/login'
+    | '/priorities'
+    | '/progress'
+    | '/study-assistant'
+    | '/study-path'
+    | '/priorities/$topicId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login'
-  id: '__root__' | '/' | '/dashboard' | '/login'
+  to:
+    | '/'
+    | '/change-context'
+    | '/dashboard'
+    | '/dependencies'
+    | '/insights'
+    | '/login'
+    | '/priorities'
+    | '/progress'
+    | '/study-assistant'
+    | '/study-path'
+    | '/priorities/$topicId'
+  id:
+    | '__root__'
+    | '/'
+    | '/change-context'
+    | '/dashboard'
+    | '/dependencies'
+    | '/insights'
+    | '/login'
+    | '/priorities'
+    | '/progress'
+    | '/study-assistant'
+    | '/study-path'
+    | '/priorities/$topicId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangeContextRoute: typeof ChangeContextRoute
   DashboardRoute: typeof DashboardRoute
+  DependenciesRoute: typeof DependenciesRoute
+  InsightsRoute: typeof InsightsRoute
   LoginRoute: typeof LoginRoute
+  PrioritiesRoute: typeof PrioritiesRouteWithChildren
+  ProgressRoute: typeof ProgressRoute
+  StudyAssistantRoute: typeof StudyAssistantRoute
+  StudyPathRoute: typeof StudyPathRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/study-path': {
+      id: '/study-path'
+      path: '/study-path'
+      fullPath: '/study-path'
+      preLoaderRoute: typeof StudyPathRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/study-assistant': {
+      id: '/study-assistant'
+      path: '/study-assistant'
+      fullPath: '/study-assistant'
+      preLoaderRoute: typeof StudyAssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/priorities': {
+      id: '/priorities'
+      path: '/priorities'
+      fullPath: '/priorities'
+      preLoaderRoute: typeof PrioritiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dependencies': {
+      id: '/dependencies'
+      path: '/dependencies'
+      fullPath: '/dependencies'
+      preLoaderRoute: typeof DependenciesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -75,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/change-context': {
+      id: '/change-context'
+      path: '/change-context'
+      fullPath: '/change-context'
+      preLoaderRoute: typeof ChangeContextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -82,13 +244,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/priorities/$topicId': {
+      id: '/priorities/$topicId'
+      path: '/$topicId'
+      fullPath: '/priorities/$topicId'
+      preLoaderRoute: typeof PrioritiesTopicIdRouteImport
+      parentRoute: typeof PrioritiesRoute
+    }
   }
 }
 
+interface PrioritiesRouteChildren {
+  PrioritiesTopicIdRoute: typeof PrioritiesTopicIdRoute
+}
+
+const PrioritiesRouteChildren: PrioritiesRouteChildren = {
+  PrioritiesTopicIdRoute: PrioritiesTopicIdRoute,
+}
+
+const PrioritiesRouteWithChildren = PrioritiesRoute._addFileChildren(
+  PrioritiesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangeContextRoute: ChangeContextRoute,
   DashboardRoute: DashboardRoute,
+  DependenciesRoute: DependenciesRoute,
+  InsightsRoute: InsightsRoute,
   LoginRoute: LoginRoute,
+  PrioritiesRoute: PrioritiesRouteWithChildren,
+  ProgressRoute: ProgressRoute,
+  StudyAssistantRoute: StudyAssistantRoute,
+  StudyPathRoute: StudyPathRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

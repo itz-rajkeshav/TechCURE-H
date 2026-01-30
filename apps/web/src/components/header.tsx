@@ -6,8 +6,10 @@ import UserMenu from "./user-menu";
 export default function Header() {
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const isDashboard = location.pathname.startsWith("/dashboard");
+  const isDashboardRelated = ["/study-path", "/priorities", "/insights", "/dependencies", "/progress", "/change-context", "/study-assistant"].includes(location.pathname);
 
-  if (isHome) {
+  if (isHome || isDashboard || isDashboardRelated) {
     return null;
   }
 

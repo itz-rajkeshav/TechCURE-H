@@ -17,7 +17,7 @@ import "../index.css";
 
 export interface RouterAppContext {
   orpc: typeof orpc;
-  queryClient: QueryClient;
+  queryClient: QueryClient; 
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
