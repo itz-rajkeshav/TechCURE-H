@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-
 import { authClient } from "@/lib/auth-client";
-import { orpc } from "@/utils/orpc";
+import { useAppStore } from "@/store/appStore";
+import { SubjectSelector } from "@/components/shared/SubjectSelector";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { OverviewView } from "@/components/dashboard/OverviewView";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,
@@ -19,15 +20,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function RouteComponent() {
-  const { session } = Route.useRouteContext();
-
-  const privateData = useQuery(orpc.privateData.queryOptions());
+  const { selectedSubject } = useAppStore();
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session.data?.user.name}</p>
-      <p>API: {privateData.data?.message}</p>
-    </div>
+    <DashboardLayout>
+        <OverviewView />
+    </DashboardLayout>
   );
 }

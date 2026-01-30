@@ -6,8 +6,9 @@ import UserMenu from "./user-menu";
 export default function Header() {
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const isDashboard = location.pathname.startsWith("/dashboard");
 
-  if (isHome) {
+  if (isHome || isDashboard) {
     return null;
   }
 
