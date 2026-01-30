@@ -12,6 +12,10 @@ import { subjectsRouter } from "./subjects.router";
 import { topicsRouter } from "./topics.router";
 import { progressRouter } from "./progress.router";
 import { searchRouter } from "./search.router";
+import { flowRouter } from "./flow.router";
+import { analyticsRouter } from "./analytics.router";
+import { userRouter } from "./user.router";
+import { exportRouter } from "./export.router";
 
 // ============================================================================
 // Main App Router
@@ -31,12 +35,40 @@ export const appRouter = {
     };
   }),
 
-  // Feature routers
+  // =========================================================================
+  // Public Feature Routers
+  // =========================================================================
+
+  /** Course management (CBSE, JEE, NEET) */
   courses: coursesRouter,
+
+  /** Subject management within courses */
   subjects: subjectsRouter,
+
+  /** Learning topic management */
   topics: topicsRouter,
-  progress: progressRouter,
+
+  /** Search topics and subjects */
   search: searchRouter,
+
+  /** React Flow graph data */
+  flow: flowRouter,
+
+  /** Analytics and statistics */
+  analytics: analyticsRouter,
+
+  /** Export data in JSON/CSV */
+  export: exportRouter,
+
+  // =========================================================================
+  // Protected Feature Routers
+  // =========================================================================
+
+  /** User progress tracking */
+  progress: progressRouter,
+
+  /** User profile and settings */
+  user: userRouter,
 };
 
 // ============================================================================
