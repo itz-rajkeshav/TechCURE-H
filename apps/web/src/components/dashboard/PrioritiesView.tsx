@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "@/store/appStore";
+import { Link } from "@tanstack/react-router";
 
 interface PriorityItem {
   id: string;
@@ -163,15 +164,15 @@ export function PrioritiesView() {
             {/* Column Items */}
             <div className="flex flex-col gap-3 min-h-[200px]">
               {column.items.map((item) => (
-                <div
+                <Link
                   key={item.id}
-                  draggable
-                  onDragStart={() => handleDragStart(item, column.id)}
-                  className={`bg-white border border-[#e7ebf3] rounded-xl p-4 cursor-move hover:shadow-md transition-all border-l-4 ${column.borderColor} group`}
+                  to="/priorities/$topicId"
+                  params={{ topicId: item.id }}
+                  className={`bg-white border border-[#e7ebf3] rounded-xl p-4 hover:shadow-md transition-all border-l-4 ${column.borderColor} group block`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-[#0d121b] mb-2">
+                      <h4 className="font-bold text-[#0d121b] mb-2 group-hover:text-[#135bec] transition-colors">
                         {item.title}
                       </h4>
                       <p className="text-sm text-[#4c669a] leading-relaxed">
@@ -185,11 +186,19 @@ export function PrioritiesView() {
                         </div>
                       )}
                     </div>
-                    <span className="material-symbols-outlined text-[#cfd7e7] text-xl shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                    <button
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        handleDragStart(item, column.id);
+                      }}
+                      onClick={(e) => e.preventDefault()}
+                      className="material-symbols-outlined text-[#cfd7e7] text-xl shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                    >
                       drag_indicator
-                    </span>
+                    </button>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

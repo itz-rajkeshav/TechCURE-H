@@ -11,7 +11,7 @@ export function DashboardSidebar() {
     { label: "Insights", icon: "lightbulb", href: "/insights" },
     { label: "Dependencies", icon: "account_tree", href: "/dependencies" },
     { label: "Progress", icon: "bar_chart", href: "/progress" },
-    { label: "Study Assistant", icon: "chat_bubble", href: "/dashboard" },
+    { label: "Study Assistant", icon: "smart_toy", href: "/study-assistant" },
     { label: "Change Context", icon: "swap_horiz", href: "/change-context" },
   ];
 
