@@ -1,16 +1,18 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
+  const location = useLocation();
+  
   const navItems = [
-    { label: "Overview", icon: "dashboard", href: "/dashboard", active: true },
-    { label: "Study Path", icon: "map", href: "/dashboard", active: false },
-    { label: "Priorities", icon: "priority_high", href: "/dashboard", active: false },
-    { label: "Insights", icon: "lightbulb", href: "/dashboard", active: false },
-    { label: "Dependencies", icon: "account_tree", href: "/dashboard", active: false },
-    { label: "Progress", icon: "bar_chart", href: "/dashboard", active: false },
-    { label: "Study Assistant", icon: "chat_bubble", href: "/dashboard", active: false },
-    { label: "Change Context", icon: "swap_horiz", href: "/change-context", active: false },
+    { label: "Overview", icon: "dashboard", href: "/dashboard" },
+    { label: "Study Path", icon: "map", href: "/study-path" },
+    { label: "Priorities", icon: "priority_high", href: "/priorities" },
+    { label: "Insights", icon: "lightbulb", href: "/dashboard" },
+    { label: "Dependencies", icon: "account_tree", href: "/dashboard" },
+    { label: "Progress", icon: "bar_chart", href: "/dashboard" },
+    { label: "Study Assistant", icon: "chat_bubble", href: "/dashboard" },
+    { label: "Change Context", icon: "swap_horiz", href: "/change-context" },
   ];
 
   return (
@@ -22,23 +24,26 @@ export function DashboardSidebar() {
         </div>
         
         <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              to={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                item.active 
-                  ? "bg-[#e7ebf3] text-[#135bec]" 
-                  : "text-[#4c669a] hover:bg-[#f6f6f8]"
-              )}
-            >
-              <span className="material-symbols-outlined">{item.icon}</span>
-              <p className={cn("text-sm", item.active ? "font-semibold" : "font-medium")}>
-                {item.label}
-              </p>
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                  isActive 
+                    ? "bg-[#e7ebf3] text-[#135bec]" 
+                    : "text-[#4c669a] hover:bg-[#f6f6f8]"
+                )}
+              >
+                <span className="material-symbols-outlined">{item.icon}</span>
+                <p className={cn("text-sm", isActive ? "font-semibold" : "font-medium")}>
+                  {item.label}
+                </p>
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </aside>
