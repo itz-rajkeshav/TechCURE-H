@@ -7,7 +7,7 @@ export default function Header() {
   const location = useLocation();
   const isHome = location.pathname === "/";
   const isDashboard = location.pathname.startsWith("/dashboard");
-  const isDashboardRelated = ["/study-path", "/priorities", "/change-context"].includes(location.pathname);
+  const isDashboardRelated = ["/study-path", "/priorities", "/insights", "/dependencies", "/progress", "/change-context"].includes(location.pathname);
 
   if (isHome || isDashboard || isDashboardRelated) {
     return null;
