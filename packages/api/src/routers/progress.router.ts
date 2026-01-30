@@ -88,7 +88,7 @@ export const getProgress = protectedProcedure
 
         // Build full progress list with defaults for topics without progress
         const fullProgress = allTopics.map((topic: ITopic) => {
-            const existing = progressMap.get(topic._id?.toString());
+            const existing = progressMap.get(topic._id?.toString() ?? "");
             return existing || {
                 topic,
                 status: "not_started",
