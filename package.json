@@ -15,6 +15,7 @@
     "dev:server": "turbo -F server dev"
   },
   "dependencies": {
+    "@radix-ui/react-progress": "^1.1.8",
     "@techcure/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@techcure/config": "workspace:*",
     "@types/node": "catalog:",
+    "tsx": "^4.21.0",
     "turbo": "^2.6.3",
     "typescript": "catalog:"
   },

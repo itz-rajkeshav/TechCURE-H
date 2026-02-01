@@ -1,11 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useAppStore } from "@/store/appStore";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PrioritiesView } from "@/components/dashboard/PrioritiesView";
+import { DependenciesView } from "@/components/dashboard/mind-map";
 
-export const Route = createFileRoute("/priorities")({
+export const Route = createFileRoute("/mind-map")({
   component: RouteComponent,
   beforeLoad: async () => {
     const session = await authClient.getSession();
@@ -20,16 +18,9 @@ export const Route = createFileRoute("/priorities")({
 });
 
 function RouteComponent() {
-  const { initializeDefaults } = useAppStore();
-  
-  // Initialize defaults on first load
-  useEffect(() => {
-    initializeDefaults();
-  }, [initializeDefaults]);
-
   return (
     <DashboardLayout>
-      <PrioritiesView />
+      <DependenciesView />
     </DashboardLayout>
   );
 }

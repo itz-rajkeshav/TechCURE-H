@@ -5,7 +5,8 @@ import { RPCHandler } from "@orpc/server/node";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createContext } from "@techcure/api/context";
 import { appRouter } from "@techcure/api/routers/index";
-import { auth } from "@techcure/auth";
+import { getAuth } from "@techcure/auth";
+import { connectDB } from "@techcure/db";
 import { env } from "@techcure/env/server";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
@@ -13,16 +14,32 @@ import express from "express";
 
 const app = express();
 
+// Apply JSON parsing middleware first
+app.use(express.json());
+
+// Apply CORS middleware
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
   }),
 );
 
-app.all("/api/auth{/*path}", toNodeHandler(auth));
+// Auth routes - Better Auth handler with direct function call
+app.use("/api/auth", async (req, res) => {
+  console.log(`🔐 Auth request: ${req.method} ${req.originalUrl}`);
+  
+  try {
+    const authInstance = await getAuth();
+    const handler = toNodeHandler(authInstance);
+    return handler(req, res);
+  } catch (error: any) {
+    console.error("❌ Auth error:", error);
+    res.status(500).json({ error: "Authentication service error", details: error.message });
+  }
+});
 
 const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
@@ -60,12 +77,16 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use(express.json());
-
 app.get("/", (_req, res) => {
   res.status(200).send("OK");
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000");
+app.listen(3000, async () => {
+  try {
+    await connectDB();
+    console.log("Server is running on http://localhost:3000");
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
 });

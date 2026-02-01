@@ -1,6 +1,7 @@
 import type { Request } from "express";
 
 import { auth } from "@techcure/auth";
+import { mongoose } from "@techcure/db";
 import { fromNodeHeaders } from "better-auth/node";
 
 interface CreateContextOptions {
@@ -8,9 +9,21 @@ interface CreateContextOptions {
 }
 
 export async function createContext(opts: CreateContextOptions) {
-  const session = await auth.api.getSession({
+  // Only check connection if it's not already connected
+  // This avoids unnecessary database calls on every request
+  if (mongoose.connection.readyState !== 1) {
+    // Import dynamically to avoid circular dependency issues
+    const { ensureConnection } = await import("@techcure/db");
+    await ensureConnection();
+  }
+  
+  // Get the auth instance (it's a promise)
+  const authInstance = await auth;
+  
+  const session = await authInstance.api.getSession({
     headers: fromNodeHeaders(opts.req.headers),
   });
+  
   return {
     session,
   };

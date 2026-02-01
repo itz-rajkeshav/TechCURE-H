@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/store/appStore";
 import { SubjectSelector } from "@/components/shared/SubjectSelector";
@@ -20,7 +21,12 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function RouteComponent() {
-  const { selectedSubject } = useAppStore();
+  const { selectedSubject, initializeDefaults } = useAppStore();
+  
+  // Initialize defaults on first load
+  useEffect(() => {
+    initializeDefaults();
+  }, [initializeDefaults]);
 
   return (
     <DashboardLayout>

@@ -23,6 +23,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
       name: "",
     },
     onSubmit: async ({ value }) => {
+      console.log("📝 Attempting sign-up with:", value.email);
+      
       await authClient.signUp.email(
         {
           email: value.email,
@@ -31,13 +33,21 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
+            console.log("✅ Sign-up successful");
             navigate({
               to: "/dashboard",
             });
             toast.success("Sign up successful");
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            console.error("❌ Sign-up error:", error);
+            console.error("❌ Error details:", JSON.stringify(error, null, 2));
+            
+            const errorMessage = 
+              error?.error?.message || 
+              "Sign up failed. Please try again.";
+              
+            toast.error(errorMessage);
           },
         },
       );

@@ -16,6 +16,9 @@ import { flowRouter } from "./flow.router";
 import { analyticsRouter } from "./analytics.router";
 import { userRouter } from "./user.router";
 import { exportRouter } from "./export.router";
+import { aiRouter } from "./ai.router";
+import { learningRouter } from "./learning.router";
+import { contextRouter } from "./context.router";
 
 // ============================================================================
 // Main App Router
@@ -69,6 +72,15 @@ export const appRouter = {
 
   /** User profile and settings */
   user: userRouter,
+
+  /** AI-powered study assistant */
+  ai: aiRouter,
+
+  /** Interactive learning features (quizzes, flashcards, gamification) */
+  learning: learningRouter,
+
+  /** Learning context and syllabus management */
+  context: contextRouter,
 };
 
 // ============================================================================

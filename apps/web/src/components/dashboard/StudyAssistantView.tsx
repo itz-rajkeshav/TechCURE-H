@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useAppStore } from "@/store/appStore";
+import { useAIChat, useUserStats } from "@/lib/api/hooks";
+import { useProgress } from "@/lib/api/hooks";
+import { Link } from "@tanstack/react-router";
 
 interface Message {
   id: string;
@@ -11,12 +14,20 @@ interface Message {
 export function StudyAssistantView() {
   const { selectedSubject } = useAppStore();
   const subjectName = selectedSubject?.name || "Data Structures & Algorithms";
+  const subjectId = selectedSubject?.id;
+  
+  // Get user progress for context
+  const { data: progressData } = useProgress(subjectId || "");
+  const { data: userStatsData } = useUserStats();
+  
+  // AI Chat hook
+  const aiChatMutation = useAIChat();
 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "assistant",
-      content: `Hello! I'm your LearnPath Study Assistant. Based on your current progress in ${subjectName}, I can help you with priority mapping, graduation requirements, or subject-specific tutoring. How can I assist you today?`,
+      content: `Hello! I'm your Study Assistant for ${subjectName}. I can help you with questions, create practice quizzes, suggest study strategies, or review concepts. I can also guide you to interactive learning tools. What would you like to work on?`,
       timestamp: new Date(),
     },
   ]);
@@ -24,12 +35,13 @@ export function StudyAssistantView() {
   const [inputValue, setInputValue] = useState("");
 
   const suggestedActions = [
-    "Explain Priority Mapping",
-    "How is my GPA projected?",
-    "Summarize last session",
+    "Create a practice quiz",
+    "Review key concepts",
+    "Study strategy tips",
+    "Explain difficult topics",
   ];
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
     // Add user message
@@ -41,19 +53,73 @@ export function StudyAssistantView() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-
-    // Simulate assistant response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "assistant",
-        content: "I'm analyzing your question and will provide a detailed response shortly...",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    }, 500);
-
     setInputValue("");
+
+    // Add loading message
+    const loadingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: "assistant",
+      content: "Thinking...",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, loadingMessage]);
+
+    try {
+      // Get conversation history for context (last 10 messages)
+      const conversationHistory = messages
+        .slice(-10)
+        .map(msg => ({
+          role: msg.type === "user" ? "user" as const : "assistant" as const,
+          content: msg.content
+        }));
+
+      // Build context from user progress and subject info
+      const context = {
+        subjectId: subjectId,
+        subjectName: subjectName,
+        userProgress: progressData && Array.isArray(progressData) ? {
+          completedTopics: progressData.filter(p => p.status === "completed").length,
+          totalTopics: progressData.length,
+          currentLevel: "intermediate" // Default level, can be enhanced later
+        } : undefined
+      };
+
+      // Call AI API
+      const response = await aiChatMutation.mutateAsync({
+        message: content,
+        context: context,
+        conversationHistory: conversationHistory
+      });
+
+      // Replace loading message with AI response
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === loadingMessage.id 
+            ? {
+                ...msg,
+                content: response.response,
+                timestamp: new Date(response.timestamp)
+              }
+            : msg
+        )
+      );
+
+    } catch (error) {
+      console.error("AI Chat error:", error);
+      
+      // Replace loading message with error fallback
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === loadingMessage.id 
+            ? {
+                ...msg,
+                content: "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or feel free to ask me about study planning, course recommendations, or academic strategies.",
+              }
+            : msg
+        )
+      );
+    }
   };
 
   const handleSuggestedAction = (action: string) => {
@@ -70,13 +136,79 @@ export function StudyAssistantView() {
   return (
     <div className="max-w-[1400px] mx-auto flex flex-col h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="flex flex-col gap-2 mb-6">
-        <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">
-          Study Assistant
-        </h2>
-        <p className="text-base text-[#4c669a]">
-          Get personalized help with your academic planning and subject tutoring.
-        </p>
+      <div className="flex flex-col gap-4 mb-6">
+        <div>
+          <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">
+            Study Assistant
+          </h2>
+          <p className="text-base text-[#4c669a]">
+            Get AI-powered help with learning, plus access to interactive study tools.
+          </p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link
+            to="/quizzes"
+            className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                <span className="material-symbols-outlined text-white text-lg">quiz</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-blue-800 text-sm">Practice Quiz</h4>
+                <p className="text-xs text-blue-600">Test knowledge</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to="/flashcards"
+            className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                <span className="material-symbols-outlined text-white text-lg">style</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-green-800 text-sm">Flashcards</h4>
+                <p className="text-xs text-green-600">Quick review</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to="/progress"
+            className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                <span className="material-symbols-outlined text-white text-lg">trending_up</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-purple-800 text-sm">Progress</h4>
+                <p className="text-xs text-purple-600">Track stats</p>
+              </div>
+            </div>
+          </Link>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-lg">emoji_events</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-orange-800 text-sm">
+                  Level {userStatsData?.success && userStatsData.data ? userStatsData.data.stats.level : '1'}
+                </h4>
+                <p className="text-xs text-orange-600">
+                  {userStatsData?.success && userStatsData.data ? `${userStatsData.data.stats.currentStreak} day streak` : 'Loading...'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Chat Container */}
@@ -168,15 +300,16 @@ export function StudyAssistantView() {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask anything about your academic plan..."
-              className="flex-1 pl-12 pr-4 py-3 border border-[#e7ebf3] rounded-full bg-[#f6f6f8] text-[#0d121b] placeholder:text-[#4c669a] focus:outline-none focus:border-[#135bec] focus:bg-white transition-all"
+              disabled={aiChatMutation.isPending}
+              className="flex-1 pl-12 pr-4 py-3 border border-[#e7ebf3] rounded-full bg-[#f6f6f8] text-[#0d121b] placeholder:text-[#4c669a] focus:outline-none focus:border-[#135bec] focus:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || aiChatMutation.isPending}
               className="w-11 h-11 rounded-full bg-[#135bec] flex items-center justify-center hover:bg-[#0d4bc4] disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
             >
               <span className="material-symbols-outlined text-white text-xl">
-                send
+                {aiChatMutation.isPending ? "hourglass_empty" : "send"}
               </span>
             </button>
           </div>

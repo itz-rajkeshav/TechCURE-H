@@ -22,6 +22,8 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
       password: "",
     },
     onSubmit: async ({ value }) => {
+      console.log("🔐 Attempting sign-in with:", value.email);
+      
       await authClient.signIn.email(
         {
           email: value.email,
@@ -29,13 +31,21 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         },
         {
           onSuccess: () => {
+            console.log("✅ Sign-in successful");
             navigate({
               to: "/dashboard",
             });
             toast.success("Sign in successful");
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            console.error("❌ Sign-in error:", error);
+            console.error("❌ Error details:", JSON.stringify(error, null, 2));
+            
+            const errorMessage = 
+              error?.error?.message || 
+              "Sign in failed. Please check your credentials.";
+            
+            toast.error(errorMessage);
           },
         },
       );

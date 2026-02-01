@@ -1,4 +1,5 @@
 import { useAppStore } from "@/store/appStore";
+import { Link } from "@tanstack/react-router";
 
 export function ProgressView() {
   const { selectedSubject } = useAppStore();
@@ -16,8 +17,8 @@ export function ProgressView() {
     <div className="max-w-[1000px] mx-auto flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">Your Journey</h2>
-        <p className="text-base text-[#4c669a]">Track your progress and stay on target.</p>
+        <h2 className="text-4xl font-black tracking-tight text-[#0d121b]">Progress & Stats</h2>
+        <p className="text-base text-[#4c669a]">Track your learning journey, achievements, and performance.</p>
       </div>
 
       {/* Total Completion Card */}
@@ -195,6 +196,65 @@ export function ProgressView() {
               <p className="text-xs text-[#4c669a]">{achievement.description}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Interactive Learning Section */}
+      <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200/50 rounded-xl p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="material-symbols-outlined text-purple-600 text-3xl">psychology</span>
+          <h3 className="text-2xl font-bold text-purple-700">Boost Your Learning</h3>
+        </div>
+        
+        <p className="text-purple-600/80 mb-6 leading-relaxed">
+          Take interactive quizzes and review flashcards to reinforce your knowledge and earn points.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link 
+            to="/quizzes" 
+            className="bg-white/80 backdrop-blur-sm p-6 rounded-lg border border-purple-200/50 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                <span className="material-symbols-outlined text-blue-600 text-xl">quiz</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 mb-1">Take Quiz</h4>
+                <p className="text-sm text-gray-600">Test knowledge</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            to="/flashcards" 
+            className="bg-white/80 backdrop-blur-sm p-6 rounded-lg border border-purple-200/50 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <span className="material-symbols-outlined text-green-600 text-xl">style</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 mb-1">Flashcards</h4>
+                <p className="text-sm text-gray-600">Quick review</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link 
+            to="/study-assistant" 
+            className="bg-white/80 backdrop-blur-sm p-6 rounded-lg border border-purple-200/50 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-full bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <span className="material-symbols-outlined text-purple-600 text-xl">smart_toy</span>
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-800 mb-1">AI Tutor</h4>
+                <p className="text-sm text-gray-600">Get help</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

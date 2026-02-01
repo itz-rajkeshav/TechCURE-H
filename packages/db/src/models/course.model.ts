@@ -48,7 +48,6 @@ const courseSchema = new Schema<ICourse>(
 );
 
 // Indexes
-courseSchema.index({ code: 1 });
 courseSchema.index({ name: "text", description: "text" });
 
 // Pre-save hook to generate _id from code
